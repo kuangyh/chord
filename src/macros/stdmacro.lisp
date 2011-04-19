@@ -4,9 +4,7 @@
      ; Very useful in pattern matching code
      (+ '(@ _) (@ src (: 1 None))))
 
-(def (macro_match src)
-     (= ['match value . proc] src)
-     `('= proc value))
+(= macro_match (# ['match value . proc] => `('= proc value)))
 
 (def (macro_exec src) `((@ src :1) '_))
 

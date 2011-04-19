@@ -115,7 +115,7 @@ Proc can be used in ``\verb|for|'' and ``\verb|loop|''.
 Concise version of list comprehension. 
 
 \begin{verbatim}
-(for (# x ?(<= x 2) => (* x x)) [4 1 3 2])  ; => [1 4]
+(for (# x ?(<= x 2) => (* x x)) <- [4 1 3 2])  ; => [1 4]
 \end{verbatim}
 
 \begin{verbatim}
@@ -136,9 +136,7 @@ We use ``match'' expression everywhere.
 This expression is entirely implemented in SoLISP, by defining a macro.
 
 \begin{verbatim}
-(def (macro_match src)
-     (= ['match value . proc] src)
-     `('= proc value))
+(= macro_match (# ['match value . proc] => `('= proc value)))
 \end{verbatim}
 
 It translates \verb|(match value . proc)| into \verb|(= proc value)|, then assignment primitive do the job.
