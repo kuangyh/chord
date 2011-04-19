@@ -20,7 +20,7 @@
 	(fp.write
 	  (+ "<" self.tag " "
 	     ((@ " " join) (for [k v] <- (self.attrs.iteritems)
-				(+ k "=" (cgi.escape (str v)))))
+				(+ k "=\"" (cgi.escape (str v)) "\"")))
 	     ">"))
 	(for x <- self.content
 	     (match x
@@ -44,7 +44,3 @@
 
 (= dom (Helper))
 
-(widget (page content :title "United")
- (dom.html
-   (dom.head (dom.title title))
-   (dom.body content)))
