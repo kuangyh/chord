@@ -11,48 +11,160 @@
 \section{Introduction}
 
 
-\section{Language Design}
+\section{A taste of SoLISP}
 
-\subsection{Integerate with Python}
 
+\subsection{Hello World}
+
+Say hello world using sys.stdout.write. It represent the LISP natual of SoLISP and how it integerate with Python.
+
+\begin{verbatim}
+(import sys)
+(def (hello :name "World")
+   (@ sys stdout write ((% "Hello %s!\n" name))))
+
+(hello) ; => "Hello World!\n"
+(hello "Yuheng") ; => "Hello Yuheng!\n"
+\end{verbatim}
+
+
+\subsection{Everything is expression}
+
+As in LISP, Everything in SoLISP is expression.
+
+\begin{verbatim}
+(def (random_add :large False)
+  (+ (if large 10000 else 1) 1))
+
+(print (random_add)) ; => 1
+(print (rnadom-add True)) ; => 10001
+\end{verbatim}
+
+
+\subsection{Powerful for}
+
+A simple list comprehension example.
+
+\begin{verbatim}
+(print (for x <- [1 4 2 3]
+          (if (> x 2) (cont)) (* x x)))
+; => [1 4]
+\end{verbatim}
+
+A nested example.
+
+\begin{verbatim}
+(print
+ (for x <- ["a" "b"]
+    (emit* (for y <- [1 2] [x y]))) (cont)))
+; => [["a" 1] ["a" 2] ["b" 1] ["b" 2)]
+\end{verbatim}
+
+
+\subsection{Restricted loop}
+
+Looping in SoLISP is more restricted. You specify init value of the loop, then use \verb|(cont next_value)| to loop, the loop will break if you do nothing.
+
+\begin{verbatim}
+(print
+ (loop total <- 1
+       (if (< total 1000) (cont (* total 2)))))
+; => 1024
+\end{verbatim}
 
 \subsection{Pattern matching}
 
+The test\_proc is a one-argument function, that returns input when input is int and larger than 0, else raise an \verb|MatchException|.
 
-\subsection{Looping}
+\begin{verbatim}
+(= test_proc (# x :int ?(> x 0)))
+(test_proc 1)  ; => 1
+(test_proc "1") ; => raise
+(test_proc 0) ; => raise
+\end{verbatim}
+
+Pattern matching can be used in assignment.
+
+\begin{verbatim}
+(= [0 x . remain] src)
+\end{verbatim}
+
+SoLISP will check the value of src's first element (equals 0?), then assign second element to x and remaining elements to remain. It's called structual matching.
+
+\subsection{Proc: try-match-do model}
+
+Pattern matching is only a very limited case of the powerful Proc engine.
+
+\begin{verbatim}
+(= commander
+ (# (str.split ["add" (int x) (int y)]) => (+ x y)
+  # (str.split ["dec" (int x) (int y)]) => (- x y)
+  # => -1))
+
+(commander "dec 10 2") => 8
+(commander "add 1 a") => -1
+(commander "blahblahblah") => -1
+\end{verbatim}
+
+It also shows how SoLISP can match virtually everything. The first two section of the proc split input string into list, then matching it into a list pattern. It's called ``Extractor'', we can use extractor to convert any object into basic data structure and match them.
+
+\subsection{Proc + Looping}
+
+Proc can be used in ``\verb|for|'' and ``\verb|loop|''.
+
+Concise version of list comprehension. 
+
+\begin{verbatim}
+(for (# x ?(<= x 2) => (* x x)) [4 1 3 2])  ; => [1 4]
+\end{verbatim}
+
+\begin{verbatim}
+(loop (# x ?(< x 1000)) <- 1 (cont (* x 2)))
+\end{verbatim}
+
+\subsection{Macros}
+
+We use ``match'' expression everywhere.
+
+\begin{verbatim}
+(match x
+ # ?(< _ 0) => "<"
+ # ?(== _ 0) => "=="
+ # => ">")
+\end{verbatim}
+
+This expression is entirely implemented in SoLISP, by defining a macro.
+
+\begin{verbatim}
+(def (macro_match src)
+     (= ['match value . proc] src)
+     `('= proc value))
+\end{verbatim}
+
+It translates \verb|(match value . proc)| into \verb|(= proc value)|, then assignment primitive do the job.
+
+\subsection{Full example}
+
+For full example, see Appendix \ref{full_example}.
+
+\section{Data type}
+
+\section{Basic syntax}
 
 
-\subsection{Other features}
+\section{Pattern matching}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Looping and iterating}
 
-\section{Implementation}
 
-\subsection{Proc}
+\section{Customize SoLISP}
 
-\subsubsection{Code optimization}
 
-To avoid unnecessary try \ldots catch wrap and other operation, Make generated code clean and effectient.
+\begin{appendix}
 
-Proc compiles in a rescursive style. Compiler generate metadata along with the code, to let the upper level compile process know how to optimize there code template.
+\section{Full example: Generating DOM Tree}
+\label{full_example}
 
-\begin{description}
-
-\item[shortcut\_equal]
-The code simply checks equal. option value is the check value.
-
-\item[shortcut\_bind]
-The code simply bind ``\verb|_|'' to names.
-
-\item[shortcut\_nop]
-This code does nothing, can be ignore in operation chanining and test expressions.
-
-\item[shortcut\_guards]
-It contains a series of guards, that we can merge all guards into one if not () \ldots raise block.
-
-\item[raise\_random]
-Indicate the code may raise exceptions other than MatchException (\_ME), Pattern matching code should catch it and convert to \_ME somewhere.
-
-\end{description}
+\end{appendix}
 \end{document}
