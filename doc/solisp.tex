@@ -1,0 +1,58 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[top=1in,bottom=1in,left=1.25in,right=1.25in]{geometry}
+\linespread{1.25}
+
+\title{SoLISP Design}
+\author{Yuheng Kuang (kuangyuheng@gmail.com)}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+
+\section{Language Design}
+
+\subsection{Integerate with Python}
+
+
+\subsection{Pattern matching}
+
+
+\subsection{Looping}
+
+
+\subsection{Other features}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Implementation}
+
+\subsection{Proc}
+
+\subsubsection{Code optimization}
+
+To avoid unnecessary try \ldots catch wrap and other operation, Make generated code clean and effectient.
+
+Proc compiles in a rescursive style. Compiler generate metadata along with the code, to let the upper level compile process know how to optimize there code template.
+
+\begin{description}
+
+\item[shortcut\_equal]
+The code simply checks equal. option value is the check value.
+
+\item[shortcut\_bind]
+The code simply bind ``\verb|_|'' to names.
+
+\item[shortcut\_nop]
+This code does nothing, can be ignore in operation chanining and test expressions.
+
+\item[shortcut\_guards]
+It contains a series of guards, that we can merge all guards into one if not () \ldots raise block.
+
+\item[raise\_random]
+Indicate the code may raise exceptions other than MatchException (\_ME), Pattern matching code should catch it and convert to \_ME somewhere.
+
+\end{description}
+\end{document}
