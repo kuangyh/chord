@@ -51,7 +51,7 @@ def prim_def(compiler, source):
     if fn_name is not None:
         return compile_fn(compiler, fn_name, source[1][1:], source[2:])
     else:
-        return compiler.compile((lisp.Symbol('='),) + source[1:])
+        return compiler.compile((lisp.Symbol('='), source[1], source[2:]))
 
 def prim_return(compiler, source):
     return pycode.create('return $#\nNone', compiler.compile(source))

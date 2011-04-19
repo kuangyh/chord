@@ -38,6 +38,7 @@
 (class Helper
    (def (element self tag . content .. attrs)
 	(Element tag attrs (flatten_list (list content))))
+   (= __call__ element)
 
    (def (__getattr__ self tag)
 	(fn ( . content .. attrs) (self.element tag . content .. attrs))))
