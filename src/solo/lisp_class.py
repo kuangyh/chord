@@ -17,7 +17,7 @@ def prim_class(compiler, source):
 	tpl += '  $#\n' + class_name
 	return pycode.create(tpl, compiler.compile_block(block))
     else:
-	tpl += '  pass\n' + classname
+	tpl += '  pass\n' + class_name
 	return pycode.create(tpl)
 
 PRIMS = { 'class' : prim_class }

@@ -16,7 +16,10 @@ def _parse_arglist(arglist):
     idx = 0
     while idx < len(arglist):
         curr = arglist[idx]
-        if type(curr) is lisp.Symbol:
+	if type(curr) is lisp.Symbol and curr.name in ('.', '..'):
+	    args.append(curr.name.replace('.', '*') + arglist[idx + 1].name)
+	    idx += 1
+        elif type(curr) is lisp.Symbol:
             args.append(curr.name)
         elif lisp.getop(curr) == ':':
             if type(curr[1]) is not lisp.Symbol:

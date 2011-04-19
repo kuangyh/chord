@@ -160,29 +160,35 @@ class Compiler(object):
         args = []
         kwargs = []
         kwarg_keys = []
+	vargs = []
+	vkwargs = []
 
         idx = 0
         # Parse argument list, compile each value argument
         while idx < len(arglist):
             curr = arglist[idx]
-            if getop(curr) == ':':
+	    if isinstance(curr, Symbol) and curr.name in ('.', '..'):
+		idx += 1
+		if curr.name == '.':
+		    vargs.append(self.compile(arglist[idx]))
+		else:
+		    vkwargs.append(self.compile(arglist[idx]))
+            elif getop(curr) == ':':
                 if len(curr) < 2 or type(curr[1]) is not Symbol:
                     raise SyntaxError('Invalid key argument syntax', arglist)
-                if curr[1].name not in ('*', '**'):
-                    kwarg_keys.append(curr[1].name)
-                    idx += 1
-                    kwargs.append(self.compile(arglist[idx]))
-                else:
-                    prefix = curr[1].name
-                    idx += 1
-                    args.append(pycode.create(
-                            prefix + '$#', self.compile(arglist[idx])))
+                kwarg_keys.append(curr[1].name)
+                idx += 1
+                kwargs.append(self.compile(arglist[idx]))
             else:
                 args.append(self.compile(arglist[idx]))
             idx += 1
 
-        tpl = ','.join(['$#'] * len(args) + [x+'=$#' for x in kwarg_keys])
-        return tpl, args + kwargs
+	arg_tpls = ['$#'] * len(args) + \
+		['*($#)'] * len(vargs) + \
+		[x+'=$#' for x in kwarg_keys] + \
+		['**($#)'] * len(vkwargs)
+        tpl = ','.join(arg_tpls)
+	return tpl, (args + vargs + kwargs + vkwargs)
 
     def compile(self, src):
 	if type(src) == pycode.Code:
