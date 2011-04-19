@@ -30,7 +30,7 @@ def prim_loop(compiler, src):
 	    tpl,
 	    compiler.compile(loop_init),
 	    compiler.compile((lisp.Symbol('='), loop_binding, lisp.Symbol(loop_name))),
-	    compiler.compile_block(loop_body))
+	    compiler.compile_block(loop_body, loop_name))
     context.curr()['LOOP_STACK'].pop()
     return output_code
 

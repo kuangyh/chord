@@ -200,9 +200,9 @@ class Compiler(object):
 	# Simply dispatch it
 	return self.prims[prim_name](self, src)
 
-    def compile_block(self, src):
+    def compile_block(self, src, init_value = 'None'):
         # Start with blank block
-        code = pycode.create('None')
+        code = pycode.create(init_value)
         for item in src:
             code += self.compile(item)
         return code

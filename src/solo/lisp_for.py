@@ -19,9 +19,12 @@ def prim_for(compiler, src):
     if type(matcher) is lisp.Symbol:
 	tpl = '%s = []\nfor %s in $#:\n  %s.append($#)\n%s' % (
 		queue_name, matcher.name, queue_name, queue_name)
-	output_code = pycode.create(
-		tpl, compiler.compile(datasource),
-		compiler.compile((lisp.Symbol('env'), matcher) + body))
+	datasource_code = compiler.compile(datasource)
+	if body:
+	    body_code = compiler.compile((lisp.Symbol('env'), matcher) + body)
+	else:
+	    body_code = pycode.create(matcher.name)
+	output_code = pycode.create(tpl, datasource_code, body_code)
     else:
 	datasource_code = compiler.compile(datasource)
 	if datasource_code.value == '_':
@@ -40,10 +43,13 @@ def prim_for(compiler, src):
 		'    continue\n' + \
 		'  %s.append($#)\n' % (queue_name,) + \
 		queue_name
-	output_code = pycode.create(
-		tpl, datasource_code, matcher_code,
-		compiler.compile(
-		    (lisp.Symbol('env'), lisp.Symbol(matcher_code.value)) + body))
+
+	if body:
+	    body_code = compiler.compile(
+		    (lisp.Symbol('env'), lisp.Symbol(matcher_code.value)) + body)
+	else:
+	    body_code = pycode.create(matcher_code.value)
+	output_code = pycode.create(tpl, datasource_code, matcher_code, body_code)
     context.curr()['FOR_STACK'].pop()
     return output_code
 

@@ -145,7 +145,8 @@ class Compiler(object):
 		tpl = 'if len(%s) != %d or $# != $#:\n  raise _ME(%s)\n%s' % (
 			proc_var, len(car_part), proc_var, proc_var)
 	    else:
-		tpl = 'if $# != $#:\n  raise _ME(%s)\n%s' % (proc_var, proc_var)
+		tpl = 'if len(%s) < %d or $# != $#:\n  raise _ME(%s)\n%s' % (
+			proc_var, len(car_part), proc_var, proc_var)
 	    code += pycode.create(tpl, equal_data, pycode.create(fetch_part))
 	elif len(car_part) == len(source):
 	    code += pycode.create('if len(%s) != %d:\n  raise _ME(%s)\n%s' % (

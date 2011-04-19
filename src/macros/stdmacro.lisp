@@ -5,7 +5,8 @@
      (+ '(@ _) (@ src (: 1 None))))
 
 (def (macro_match src)
-     `('= (@ src (: 2 None)) (@ src :1)))
+     (= ['match value . proc] src)
+     `('= proc value))
 
 (def (macro_exec src) `((@ src :1) '_))
 
