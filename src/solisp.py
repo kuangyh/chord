@@ -104,6 +104,35 @@ def init_compiler(prim_modules, macro_dir):
 	    macros.update(load_macros(module))
     return lisp.MacroExpander(macros), compiler
 
+def interpreter(expander, compiler):
+    import readline
+   
+    env = {}
+    exec """\
+from solo import _S, _ME, _UME
+from solo.builtin_lib import *
+""" in env
+    with context.Context():
+        while True:
+	    source = raw_input('> ')
+
+	    try:
+		source = lisp.PARSER.parseall(source.strip())
+		if not source:
+		    continue
+		source = expander.compile(source)
+	
+		code = compiler.compile_block(source)
+	    except BaseException, e:
+		print 'Compile error, %s' % (repr(e),)
+		continue
+	    try:
+		run_code = code.stat + '\nprint \'=>\', repr(%s)' % (code.value,)
+		exec run_code in env
+	    except BaseException, e:
+		print 'Runtime error, %s' % (repr(e),)
+		continue
+
 PRIM_MODULES = [
     'solo.lisp_prims', 'solo.lisp_for', 'solo.lisp_loop',
     'solo.lisp_if', 'solo.lisp_fn', 'solo.lisp_try', 'solo.lisp_class' ]
@@ -111,6 +140,9 @@ PRIM_MODULES = [
 if __name__ == '__main__':
     import sys
     expander, compiler = init_compiler(PRIM_MODULES, 'macros')
-    compile_packages(expander, compiler, sys.argv[1:], True)
+    if len(sys.argv) == 1:
+	interpreter(expander, compiler)
+    else:
+        compile_packages(expander, compiler, sys.argv[1:], True)
 
 
