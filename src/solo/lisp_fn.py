@@ -32,13 +32,17 @@ def _parse_arglist(arglist):
         idx += 1
     return args, kwargs, kwargs_source
 
-def compile_fn(compiler, fn_name, arglist, body):
+def compile_fn(compiler, fn_name, arglist, body, compile_return = True):
     if fn_name is None:
         fn_name = pycode.name('fn')
     args, kwargs, kwargs_source = _parse_arglist(arglist)
     kwargs_codes = map(compiler.compile, kwargs_source)
     arglist_tpl = ','.join(list(args) + [x + '=$#' for x in kwargs])
-    tpl = 'def %s(%s):\n  return $#\n%s' % (fn_name, arglist_tpl, fn_name)
+
+    if compile_return:
+        tpl = 'def %s(%s):\n  return $#\n%s' % (fn_name, arglist_tpl, fn_name)
+    else:
+	tpl = 'def %s(%s):\n  $#\n%s' % (fn_name, arglist_tpl, fn_name)
     with context.Context():
         body_code = compiler.compile_block(body)
     return pycode.create(tpl, *(kwargs_codes + [body_code]))
@@ -63,10 +67,20 @@ def prim_proc(compiler, source):
         proc_compiler = proc.Compiler(compiler)
         return pycode.create(tpl, proc_compiler.compile(proc_name + '_in', source))
 
+def prim_gen(compiler, source):
+    return compile_fn(compiler, None, source[1], source[2:], False)
+
+def prim_yield(compiler, source):
+    name = pycode.name('yield')
+    return pycode.create(
+	    '%s = yield $#\n%s' % (name, name), compiler.compile(source[1]))
+
 PRIMS = {
     'fn' : prim_fn,
     'def' : prim_def,
     'return' : prim_return,
     '#' : prim_proc,
-    '=>' : prim_proc }
+    '=>' : prim_proc,
+    'gen' : prim_gen,
+    'yield' : prim_yield }
 
