@@ -48,7 +48,7 @@ class KVStream(list):
 
 parser_types = {
         'num' : eval,
-        'str' : eval,
+	'str' : lambda x: eval('u' + x),
         'sym' : Symbol.parse_sexpr,
         'tuple' : tuple,
         'list' : list,

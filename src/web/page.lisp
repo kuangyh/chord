@@ -19,7 +19,7 @@
     (section
      (ht.p "Blahl blhal blhal")
      (ul_list
-      "First One"
+      "用中文的同学你们伤不起啊"
       (ht.span "Second One" (ht.a :href "http://www.google.com" "LOL"))
       "Last One"))))
 
