@@ -13,46 +13,26 @@ def prim_quote(compiler, src):
 def prim_struct_quote(compiler, src):
     return compiler.prims['.struct'](compiler, src[1])
 
-def prim_chain(compiler, src):
-    tpl_curr = '$#'
-    codes = [compiler.compile(src[1])]
 
-    op_sects = []
-    for sect in src[2:]:
-        if type(sect) is lisp.Symbol:
-            op_sects.append(('.' + sect.name,))
-        elif lisp.getop(sect) == ':':
-            op_sects.append(
-                ('[' + ':'.join(['$#'] * (len(sect) -1)) + ']',) \
-                    + tuple(map(compiler.compile, sect[1:])))                
-        elif type(sect) is tuple:
-            args_tpl, arg_codes = compiler.compile_call_args(sect)
-            op_sects.append(('(%s)' % (args_tpl,),) + tuple(arg_codes))
-        else:
-            op_sects.append(('[$#]', compiler.compile(sect)))
 
-    tpl_prev = []
-    tmp_name = None
-    for item in op_sects:
-        sect_tpl = item[0]
-        sect_codes = item[1:]
-        if len([x for x in sect_codes if x.is_expr()]) == len(sect_codes):
-            # All section code is expr, save to directly join
-            tpl_curr += sect_tpl
-        else:
-            if tmp_name is None:
-                tmp_name = pycode.name()
-            tpl_prev.append('%s = %s' % (tmp_name, tpl_curr))
-            tpl_curr = tmp_name + sect_tpl            
-        codes.extend(sect_codes)
-    tpl_prev.append(tpl_curr)
-    return pycode.create('\n'.join(tpl_prev), *codes)
+def is_prop_fetch(src):
+    if type(src) is not tuple:
+	return False
+    if proc.is_proc(src):
+	return False
+    for idx in xrange(len(src) - 1, 0, -1):
+	if src[idx] == Symbol('=>'):
+	    return False
+	if src[idx] == Symbol('|'):
+	    return True
+    return False
+
 
 def prim_assign(compiler, src):
     if type(src[1]) is lisp.Symbol:
 	value_code = compiler.compile(src[2])
         return pycode.create('%s=$#\n%s' % (src[1].name, src[1].name), value_code)
-    elif lisp.getop(src[1]) == '@':
+    elif is_prop_fetch(src[1]):
 	value_code = compiler.compile(src[2])
 	if not pycode.Code.is_expr_pure(value_code.value):
 	    value_code = value_code.asname(pycode.name())
@@ -94,7 +74,6 @@ def prim_import(compiler, src):
 PRIMS = {
     '\'' : prim_quote,
     '`' : prim_struct_quote,
-    '@' : prim_chain,
     '=' : prim_assign,
     'begin' : prim_begin,
     'print' : prim_print,

@@ -271,8 +271,8 @@ class Compiler(object):
 	    return pattern_code
 
 	proc_stack.append('=>')
-	body_tpl = 'try:\n  %s = $#\nexcept _ME, e:\n  raise _UME(e.args[0])\n%s' % (
-		proc_var, proc_var)
+	body_tpl = 'try:\n  %s = $#\nexcept _ME, e:\n  raise _UME(%s)\n%s' % (
+		proc_var, proc_var, proc_var)
 	body_code = pycode.create(
 		body_tpl, self.lisp_compiler.compile_block(body_part))
 	proc_stack.pop()

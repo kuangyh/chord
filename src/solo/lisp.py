@@ -129,10 +129,97 @@ def compile_struct(compiler, data):
     else:
         return pycode.create('$#', data)
 
+
+def parse_call(src):
+    subject = src[0]
+    sections = []
+    if len(src) >= 2 and src[1] == Symbol('|'):
+	src = src[2:]
+	sections.append(['|'])
+    elif len(src) >= 2 and src[1] == Symbol('=>'):
+	sections.append(['=>'])
+	src = src[2:]
+    else:
+	src = src[1:]
+	sections.append(['=>'])
+
+    for item in src:
+	if item in (Symbol('|'), Symbol('=>')):
+	    sections.append([item.name])
+	else:
+	    sections[-1].append(item)
+    return subject, sections
+
 def compile_call(compiler, src):
-    callee_code = compiler.compile(src[0])
-    arg_tpl, arg_codes = compiler.compile_call_args(src[1:])
-    return pycode.create('$#(%s)' % (arg_tpl,), callee_code, *arg_codes)
+    subject, sections = parse_call(src)
+
+    tpl_lines = ['$#']
+    sum_codes = [compiler.compile(subject)]
+
+    op_sects = []
+    for section in sections:
+	section_type, section_content = section[0], section[1:]
+	if section_type == '|':
+	    # For Props
+	    for item in section_content:
+		if type(item) == Symbol:
+		    op_sects.append(('.' + item.name,))
+		elif getop(item) == ':':
+		    op_sects.append(
+			    ('[' + ':'.join(['$#'] * (len(item) -1)) + ']',) \
+			     + tuple(map(compiler.compile, item[1:])))                
+		else:
+		    op_sects.append(('[$#]', compiler.compile(item)))
+	else:
+	    args = []
+	    kwargs = []
+	    vargs = []
+	    vkwargs = []
+
+	    section_idx = 0
+	    while section_idx < len(section_content):
+		item = section_content[section_idx]
+		if item == Symbol('.'):
+		    vargs.append(section_content[section_idx + 1])
+		    section_idx += 1
+		elif item == Symbol('..'):
+		    vkwargs.append(section_content[section_idx + 1])
+		    section_idx += 1
+		elif getop(item) == ':' and len(item) == 2 and type(item[1]) == Symbol:
+		    kwargs.append((item[1].name, section_content[section_idx + 1]))
+		    section_idx += 1
+		else:
+		    args.append(section_content[section_idx])
+		section_idx += 1
+
+	    tpl = ['$#'] * len(args)
+	    codes = list(args)
+	    if vargs:
+		tpl.append('*$#')
+		codes.append(vargs[0])
+	    tpl.extend([x[0] + '=$#' for x in kwargs])
+	    codes.extend([x[1] for x in kwargs])
+	    if vkwargs:
+		tpl.append('**$#')
+		codes.append(vkwargs[0])
+	    codes = tuple(map(compiler.compile, codes))
+	    op_sects.append(
+		    ('(' + ','.join(tpl) + ')',) + codes)
+
+    # Create tpl
+    tmp_name = None
+    for item in op_sects:
+	sect_tpl, sect_codes = item[0], item[1:]
+        if len([x for x in sect_codes if x.is_expr()]) == len(sect_codes):
+            # All section code is expr, save to directly join
+	    tpl_lines[-1] += sect_tpl
+        else:
+            if tmp_name is None:
+                tmp_name = pycode.name()
+	    tpl_lines[-1] = '%s = %s' % (tmp_name, tpl_lines[-1])
+	    tpl_lines.append(tmp_name + sect_tpl)
+        sum_codes.extend(sect_codes)
+    return pycode.create('\n'.join(tpl_lines), *sum_codes)
 
 def compile_sym(compiler, src):
     if src.name == '_':

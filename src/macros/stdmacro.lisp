@@ -1,6 +1,6 @@
 ; Standard macros for SoLISP
 (def macro_dollar
-     # [_ . items] => (+ '(@ _) items))
+     # [_ . items] => (+ '(_ -) items))
 
 (def macro_match
      # [_ value . proc] => `('= proc value))
