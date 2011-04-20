@@ -18,12 +18,10 @@ def prim_struct_quote(compiler, src):
 def is_prop_fetch(src):
     if type(src) is not tuple:
 	return False
-    if proc.is_proc(src):
-	return False
     for idx in xrange(len(src) - 1, 0, -1):
-	if src[idx] == Symbol('=>'):
+	if src[idx] == lisp.Symbol('!'):
 	    return False
-	if src[idx] == Symbol('|'):
+	if src[idx] == lisp.Symbol('->'):
 	    return True
     return False
 

@@ -19,14 +19,14 @@
    (def (dump self fp)
 	(fp.write
 	  (+ "<" self.tag " "
-	     ((" " | join) => (for [k v] <- (self.attrs.iteritems)
-				(+ k "=\"" (cgi.escape ((unicode v) | encode => "utf-8")) "\"")))
+	     ((" " -> join) (for [k v] <- (self.attrs.iteritems)
+			     (+ k "=\"" (cgi.escape ((unicode v) -> encode ! "utf-8")) "\"")))
 	     ">"))
 	(for x <- self.content
 	     (match x
 	      # :Element => (x.dump fp)
 	      # :FormattedString => (fp.write x)
-	      # => (fp.write (cgi.escape ((unicode x) | encode => "utf-8")))) ; match
+	      # => (fp.write (cgi.escape ((unicode x) -> encode ! "utf-8")))) ; match
 	     ) ;for
 	(fp.write (% "</%s>" self.tag))
 	None)

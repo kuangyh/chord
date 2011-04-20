@@ -133,18 +133,18 @@ def compile_struct(compiler, data):
 def parse_call(src):
     subject = src[0]
     sections = []
-    if len(src) >= 2 and src[1] == Symbol('|'):
+    if len(src) >= 2 and src[1] == Symbol('->'):
 	src = src[2:]
-	sections.append(['|'])
-    elif len(src) >= 2 and src[1] == Symbol('=>'):
-	sections.append(['=>'])
+	sections.append(['->'])
+    elif len(src) >= 2 and src[1] == Symbol('!'):
+	sections.append(['!'])
 	src = src[2:]
     else:
 	src = src[1:]
-	sections.append(['=>'])
+	sections.append(['!'])
 
     for item in src:
-	if item in (Symbol('|'), Symbol('=>')):
+	if item in (Symbol('->'), Symbol('!')):
 	    sections.append([item.name])
 	else:
 	    sections[-1].append(item)
@@ -159,7 +159,7 @@ def compile_call(compiler, src):
     op_sects = []
     for section in sections:
 	section_type, section_content = section[0], section[1:]
-	if section_type == '|':
+	if section_type == '->':
 	    # For Props
 	    for item in section_content:
 		if type(item) == Symbol:
@@ -242,40 +242,6 @@ class Compiler(object):
 	new_prims = dict(self.prims)
 	new_prims.update(prims)
 	return type(self)(new_prims)
-
-    def compile_call_args(self, arglist):
-        args = []
-        kwargs = []
-        kwarg_keys = []
-	vargs = []
-	vkwargs = []
-
-        idx = 0
-        # Parse argument list, compile each value argument
-        while idx < len(arglist):
-            curr = arglist[idx]
-	    if isinstance(curr, Symbol) and curr.name in ('.', '..'):
-		idx += 1
-		if curr.name == '.':
-		    vargs.append(self.compile(arglist[idx]))
-		else:
-		    vkwargs.append(self.compile(arglist[idx]))
-            elif getop(curr) == ':':
-                if len(curr) < 2 or type(curr[1]) is not Symbol:
-                    raise SyntaxError('Invalid key argument syntax', arglist)
-                kwarg_keys.append(curr[1].name)
-                idx += 1
-                kwargs.append(self.compile(arglist[idx]))
-            else:
-                args.append(self.compile(arglist[idx]))
-            idx += 1
-
-	arg_tpls = ['$#'] * len(args) + \
-		['*($#)'] * len(vargs) + \
-		[x+'=$#' for x in kwarg_keys] + \
-		['**($#)'] * len(vkwargs)
-        tpl = ','.join(arg_tpls)
-	return tpl, (args + vargs + kwargs + vkwargs)
 
     def compile(self, src):
 	if type(src) == pycode.Code:
