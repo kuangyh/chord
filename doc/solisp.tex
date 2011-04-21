@@ -10,9 +10,19 @@
 
 \section{Introduction}
 
+\subsection{Simple facts}
+
+\begin{enumerate}
+\item SoLISP is a LISP variants. It uses S-Expression and has common syntax like \verb|(+ 1 value)|
+\item SoLISP aims to map Python language feature to S-Expression, instead of implementing yet another dynamic language.
+\item SoLISP shares same data and execution with Python. You can use Python libraries you love in SoLISP directly.
+\item SoLISP compiles into plain human readable Python code.
+\item Beyond Python, SoLISP provide features like Macro system and Pattern matching (Proc model).
+\end{enumerate}
+
+\subsection{Why SoLISP?}
 
 \section{A taste of SoLISP}
-
 
 \subsection{Hello World}
 
@@ -21,12 +31,20 @@ Say hello world using sys.stdout.write. It represent the LISP natual of SoLISP a
 \begin{verbatim}
 (import sys)
 (def (hello :name "World")
-   (@ sys stdout write ((% "Hello %s!\n" name))))
-
+  (sys -> stdout write ! (% "Hello %s!\n" name)))
 (hello) ; => "Hello World!\n"
 (hello "Yuheng") ; => "Hello Yuheng!\n"
 \end{verbatim}
 
+The code will be compiled into plain Python code:
+
+\begin{verbatim}
+import sys
+def hello(name = 'World'):
+  sys.stdout.write('Hello %s!\n', name)
+hello()
+hello('Yuheng')
+\end{verbatim}
 
 \subsection{Everything is expression}
 
@@ -37,7 +55,7 @@ As in LISP, Everything in SoLISP is expression.
   (+ (if large 10000 else 1) 1))
 
 (print (random_add)) ; => 1
-(print (rnadom-add True)) ; => 10001
+(print (random-add True)) ; => 10001
 \end{verbatim}
 
 
@@ -143,26 +161,24 @@ It translates \verb|(match value . proc)| into \verb|(= proc value)|, then assig
 
 \subsection{Full example}
 
-For full example, see Appendix \ref{full_example}.
+Look into \verb|src/web/| directory in Chord package for a full example.
 
-\section{Data type}
+\section{S-Expr and basic data types}
 
-\section{Basic syntax}
+\section{Basic language features}
 
+\subsection{Simple expression}
 
-\section{Pattern matching}
+\subsection{Control structure}
 
+\section{Proc model}
 
-\section{Looping and iterating}
+\subsection{Introduction to pattern matching}
 
+\subsection{Try - match - do model}
+
+\subsection{Looping with pattern matching}
 
 \section{Customize SoLISP}
 
-
-\begin{appendix}
-
-\section{Full example: Generating DOM Tree}
-\label{full_example}
-
-\end{appendix}
 \end{document}
