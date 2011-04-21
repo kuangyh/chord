@@ -66,6 +66,19 @@ def prefix_rewrite(prefixes):
 
 PARSER = sexpr.Parser(prefix_rewrite('\'`:?#$'), parser_types)
 
+def repr_data(data):
+    """Mainlly for debug reason"""
+    if isinstance(data, Symbol):
+	return data.name
+    elif isinstance(data, list):
+	return '[' + ' '.join(map(repr_data, data)) + ']'
+    elif isinstance(data, tuple):
+	return '(' + ' '.join(map(repr_data, data)) + ')'
+    elif isinstance(data, KVStream):
+	return '{' + '  '.join([repr_data(x[0]) + ' ' + repr_data(x[1]) for x in data]) + '}'
+    else:
+	return repr(data)
+
 # Util functions to easily handling sexpr
 def getop(src):
     if type(src) is tuple and len(src) > 0 and type(src[0]) is Symbol:

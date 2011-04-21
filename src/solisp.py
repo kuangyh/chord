@@ -104,7 +104,7 @@ def init_compiler(prim_modules, macro_dir):
 	    macros.update(load_macros(module))
     return lisp.MacroExpander(macros), compiler
 
-def interpreter(expander, compiler):
+def interpreter(expander, compiler, debug = False):
     import readline
    
     env = {}
@@ -121,8 +121,17 @@ from solo.builtin_lib import *
 		if not source:
 		    continue
 		source = expander.compile(source)
-	
+		if debug:
+		    print ';; Expand:', lisp.repr_data(source)
 		code = compiler.compile_block(source)
+		if debug:
+		    lines = []
+		    if code.stat:
+			lines.extend(code.stat.split('\n'))
+		    lines.append(code.value)
+		    print ';; Compiled:'
+		    for line in lines:
+			print ';;', line
 	    except BaseException, e:
 		print 'Compile error, %s' % (repr(e),)
 		continue
@@ -141,7 +150,7 @@ if __name__ == '__main__':
     import sys
     expander, compiler = init_compiler(PRIM_MODULES, 'macros')
     if len(sys.argv) == 1:
-	interpreter(expander, compiler)
+	interpreter(expander, compiler, True)
     else:
         compile_packages(expander, compiler, sys.argv[1:], True)
 

@@ -92,9 +92,6 @@ class Parser(object):
                 break
         return output
 
-
-
-
 if __name__ == '__main__':
     import sys
     parser = Parser(
