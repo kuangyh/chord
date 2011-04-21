@@ -12,5 +12,3 @@ class Pipe(object):
 	for func in self.funcs:
 	    value = func(value)
 	return value
-
-pipe = Pipe
