@@ -14,4 +14,4 @@
 (= MACROS {
    "$" 		macro_dollar
    "match"	macro_match
-   "->"		macro_call_chain })
+   "!"		macro_call_chain })
