@@ -64,7 +64,7 @@ def prefix_rewrite(prefixes):
         output[ch] = make_rewrite(ch)
     return output
 
-PARSER = sexpr.Parser(prefix_rewrite('\'`:?#$'), parser_types)
+PARSER = sexpr.Parser(prefix_rewrite('\'`:?#$@'), parser_types)
 
 def repr_data(data):
     """Mainlly for debug reason"""

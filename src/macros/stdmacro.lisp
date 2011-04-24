@@ -11,7 +11,10 @@
   	     (cont [`(chain_head curr) chain_remain]))
        curr)
 
+(def (macro_proc src) (+ '(=>) (src -> (: 1 None))))
+
 (= MACROS {
    "$" 		macro_dollar
    "match"	macro_match
-   "!"		macro_call_chain })
+   "->"		macro_call_chain
+   "@"          macro_proc})
