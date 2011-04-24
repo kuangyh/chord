@@ -9,9 +9,9 @@ import re
 class Parser(object):
     RE_NUM      = re.compile(r'^[+-]?[0-9]+(\.[0-9]+)?')
     RE_STR      = re.compile(r'^\"(\\\\|\\\"|[^"])*\"', re.DOTALL)
-    RE_SYM      = re.compile(r'^[^0-9\s\(\)\[\]{}\"][^\s\(\)\[\]{}\"]*')
+    RE_SYM      = re.compile(r'^[^0-9\s\(\)\[\]{}\",][^\s\(\)\[\]{}\",]*')
     RE_LITERAL  = re.compile(r'^<!\[([a-zA-Z0-9-_]*)\[(.*)\]\]>?', re.DOTALL)
-    RE_BLANK    = re.compile(r'^\s*(;[^\r\n]*[\r\n\s]+)*', re.DOTALL)
+    RE_BLANK    = re.compile(r'^[\s,]*(;[^\r\n]*[\r\n\s,]+)*', re.DOTALL)
 
     PARN        = {
             '(' : ('tuple', ')'),

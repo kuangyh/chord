@@ -117,7 +117,7 @@ from solo.builtin_lib import *
 	    source = raw_input('> ')
 
 	    try:
-		source = lisp.PARSER.parseall(source.strip())
+		source = lisp.PARSER.parseall(source.strip() + '\n')
 		if not source:
 		    continue
 		source = expander.compile(source)

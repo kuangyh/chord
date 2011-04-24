@@ -12,3 +12,11 @@ class Pipe(object):
 	for func in self.funcs:
 	    value = func(value)
 	return value
+
+def u(src):
+    if isinstance(src, unicode):
+	return src
+    elif isinstance(src, str):
+	return src.decode('utf-8')
+    else:
+	return str(src).decode('utf-8')
