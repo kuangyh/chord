@@ -189,7 +189,7 @@ def compile_select(compiler, selector):
 	return compile_select(compiler, selector[0]) + \
 		compile_call_args(compiler, selector[1:])
     else:
-	return [('[$#)', compiler.compile(selector))]
+	return [('[$#]', compiler.compile(selector))]
 
 def compile_call(compiler, src):
     subject = src[0]
