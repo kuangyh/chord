@@ -142,82 +142,67 @@ def compile_struct(compiler, data):
     else:
         return pycode.create('$#', data)
 
+def compile_call_args(compiler, arglist):
+    args = []
+    kwargs = []
+    vargs = []
+    vkwargs = []
 
-def parse_call(src):
-    subject = src[0]
-    sections = []
-    if len(src) >= 2 and src[1] == Symbol('->'):
-	src = src[2:]
-	sections.append(['->'])
-    elif len(src) >= 2 and src[1] == Symbol('!'):
-	sections.append(['!'])
-	src = src[2:]
-    else:
-	src = src[1:]
-	sections.append(['!'])
-
-    for item in src:
-	if item in (Symbol('->'), Symbol('!')):
-	    sections.append([item.name])
+    section_idx = 0
+    while section_idx < len(arglist):
+	item = arglist[section_idx]
+	if item == Symbol('.'):
+	    vargs.append(arglist[section_idx + 1])
+	    section_idx += 1
+	elif item == Symbol('..'):
+	    vkwargs.append(arglist[section_idx + 1])
+	    section_idx += 1
+	elif getop(item) == ':' and len(item) == 2 and type(item[1]) == Symbol:
+	    kwargs.append((item[1].name, arglist[section_idx + 1]))
+	    section_idx += 1
 	else:
-	    sections[-1].append(item)
-    return subject, sections
+	    args.append(arglist[section_idx])
+	section_idx += 1
+
+    tpl = ['$#'] * len(args)
+    codes = list(args)
+    if vargs:
+	tpl.append('*$#')
+	codes.append(vargs[0])
+    tpl.extend([x[0] + '=$#' for x in kwargs])
+    codes.extend([x[1] for x in kwargs])
+    if vkwargs:
+	tpl.append('**$#')
+	codes.append(vkwargs[0])
+    codes = map(compiler.compile, codes)
+    return [('(' + ', '.join(tpl) + ')',) + tuple(codes)]
+
+
+def compile_select(compiler, selector):
+    if isinstance(selector, Symbol):
+	return [('.' + selector.name,)]
+    elif getop(selector) == ':':
+	return [('[' + ':'.join(['$#'] * (len(selector) -1)) + ']',) \
+	 	 + tuple(map(compiler.compile, selector[1:]))]
+    elif isinstance(selector, tuple):
+	# Selector with a call
+	return compile_select(compiler, selector[0]) + \
+		compile_call_args(compiler, selector[1:])
+    else:
+	return [('[$#)', compiler.compile(selector))]
 
 def compile_call(compiler, src):
-    subject, sections = parse_call(src)
-
+    subject = src[0]
     tpl_lines = ['$#']
     sum_codes = [compiler.compile(subject)]
 
-    op_sects = []
-    for section in sections:
-	section_type, section_content = section[0], section[1:]
-	if section_type == '->':
-	    # For Props
-	    for item in section_content:
-		if type(item) == Symbol:
-		    op_sects.append(('.' + item.name,))
-		elif getop(item) == ':':
-		    op_sects.append(
-			    ('[' + ':'.join(['$#'] * (len(item) -1)) + ']',) \
-			     + tuple(map(compiler.compile, item[1:])))                
-		else:
-		    op_sects.append(('[$#]', compiler.compile(item)))
-	else:
-	    args = []
-	    kwargs = []
-	    vargs = []
-	    vkwargs = []
-
-	    section_idx = 0
-	    while section_idx < len(section_content):
-		item = section_content[section_idx]
-		if item == Symbol('.'):
-		    vargs.append(section_content[section_idx + 1])
-		    section_idx += 1
-		elif item == Symbol('..'):
-		    vkwargs.append(section_content[section_idx + 1])
-		    section_idx += 1
-		elif getop(item) == ':' and len(item) == 2 and type(item[1]) == Symbol:
-		    kwargs.append((item[1].name, section_content[section_idx + 1]))
-		    section_idx += 1
-		else:
-		    args.append(section_content[section_idx])
-		section_idx += 1
-
-	    tpl = ['$#'] * len(args)
-	    codes = list(args)
-	    if vargs:
-		tpl.append('*$#')
-		codes.append(vargs[0])
-	    tpl.extend([x[0] + '=$#' for x in kwargs])
-	    codes.extend([x[1] for x in kwargs])
-	    if vkwargs:
-		tpl.append('**$#')
-		codes.append(vkwargs[0])
-	    codes = tuple(map(compiler.compile, codes))
-	    op_sects.append(
-		    ('(' + ','.join(tpl) + ')',) + codes)
+    if len(src) > 1 and src[1] == Symbol('->'):
+	# It's a selector chain
+	op_sects = []
+	for selector in src[2:]:
+	    op_sects.extend(compile_select(compiler, selector))
+    else:
+	op_sects = compile_call_args(compiler, src[1:])
 
     # Create tpl
     tmp_name = None
