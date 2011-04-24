@@ -271,13 +271,15 @@ class Compiler(object):
 	    return pattern_code
 
 	proc_stack.append('=>')
-	body_code = self.lisp_compiler.compile_block(body_part)
+	body_code = pycode.create(
+		proc_var + ' = $#\n' + proc_var,
+		self.lisp_compiler.compile_block(body_part))
 	proc_stack.pop()
 	lisp.env_pop()
 
 	if not is_last:
-	   body_tpl = 'try:\n  %s = $#\nexcept _ME, e:\n  raise _UME(%s)\n%s' % (
-		   proc_var, proc_var, proc_var)
+	   body_tpl = 'try:\n  $#\nexcept _ME, e:\n  raise _UME(%s)\n%s' % (
+		   proc_var, proc_var)
 	   body_code = pycode.create(body_tpl, body_code)
 	return pattern_code + body_code
 
