@@ -13,8 +13,14 @@
 
 (def (macro_proc src) (+ '(=>) (src -> (: 1 None))))
 
+(def (macro_assign_multi src)
+     (+ '(begin)
+	(tuple (for [left right] <- (src -> (: 1 None))
+	            `('= left right)))))
+
 (= MACROS {
    "$" 		macro_dollar
    "match"	macro_match
    "->"		macro_call_chain
-   "@"          macro_proc})
+   "@"          macro_proc
+   "=*"		macro_assign_multi})

@@ -18,14 +18,15 @@ def prim_try(compiler, source):
     finally_block = []
 
     try_var = pycode.name('try')
-    exc_var = pycode.name('exc')
 
     for item in source[1:]:
 	if lisp.getop(item) == 'except':
-	    if type(item[1]) != lisp.Symbol:
+	    if not type(item[1]) is tuple and len(item[1]) == 2 and (
+		    type(item[1][0]) is lisp.Symbol and
+		    type(item[1][1]) is lisp.Symbol):
 		raise SyntaxError, item
 	    curr_stat = 'except'
-	    (except_blocks.append((item[1].name, item[2:])))
+	    (except_blocks.append((item[1][0].name, item[1][1].name, item[2:])))
 	elif lisp.getop(item) == 'finally':
 	    finally_block.extend(item[1:])
 	else:
@@ -40,11 +41,10 @@ def prim_try(compiler, source):
     output_tpl = 'try:\n  %s = $#\n' % (try_var,)
     output_codes = [compiler.compile_block(try_block)]
     # Except part
-    lisp.env_push(exc_var)
-    for type_sym, code in except_blocks:
-	output_tpl += 'except %s:\n  %s = $#\n' % (exc_var, try_var)
+    for type_sym, bind_sym, code in except_blocks:
+	output_tpl += 'except %s, %s:\n  %s = $#\n' % (
+		type_sym, bind_sym, try_var)	
 	output_codes.append(compiler.compile_block(code))
-    lisp.env_pop()
     if finally_block:
 	output_tpl += 'finally:\n  $#\n'
 	output_codes.append(compiler.compile_block(finally_block))
